@@ -1,5 +1,6 @@
 require recipes-core/images/voltumna-sre.bb
 require include/ec.inc
+require include/ec-sxe.inc
 
 append_to_osrelease() {
 	cat <<-__EOF__ >> ${IMAGE_ROOTFS}/etc/os-release

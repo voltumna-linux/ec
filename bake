@@ -1,5 +1,5 @@
-MACHINE="kvm-nehalem"
-nice bitbake -k ec-sre || return
+# MACHINE="kvm-nehalem"
+# nice bitbake -k ec-sre || return
 
 MACHINE="qemu-nehalem-64"
 SDKMACHINE="x86_64"
@@ -12,18 +12,18 @@ nice bitbake -k ec-sdk -c populate_sdk
 #SDKMACHINE="x86_64"
 #nice bitbake -k ec-sdk -c populate_sdk || return
 
-MACHINE="mvme2500"
-nice bitbake -k ec-sre
+# MACHINE="mvme2500"
+#nice bitbake -k ec-sre
 
 #MACHINE="qemu-ppc7400"
 #SDKMACHINE="x86_64"
 #nice bitbake -k ec-sdk -c populate_sdk || return
 
-MACHINE="mvme5100"
-nice bitbake -k ec-sre
+#MACHINE="mvme5100"
+#nice bitbake -k ec-sre
 
-MACHINE="mvme7100"
-nice bitbake -k ec-sre
+#MACHINE="mvme7100"
+#nice bitbake -k ec-sre
 
 #MACHINE="qemu-cortexa8t2hf-neon"
 #SDKMACHINE="x86_64"
@@ -32,5 +32,5 @@ nice bitbake -k ec-sre
 # MACHINE="beaglebone"
 # nice bitbake -k ec-sre ec-sde || return
 
-MACHINE="beagleboneai"
-nice bitbake -k ec-sre || return
+#MACHINE="beagleboneai"
+#nice bitbake -k ec-sre || return
