@@ -3,7 +3,7 @@
 
 MACHINE="qemu-nehalem-64"
 SDKMACHINE="x86_64"
-nice bitbake -k ec-sdk -c populate_sdk
+nice bitbake -k ec-sdk -c populate_sdk || return
 
 #MACHINE="nu93-2930"
 #nice bitbake -k ec-sre ec-sde || return
