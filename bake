@@ -1,5 +1,5 @@
 # MACHINE="kvm-nehalem"
-# nice bitbake -k ec-sre || return
+# nice bitbake -k ec-sde || return
 
 MACHINE="qemu-nehalem-64"
 SDKMACHINE="x86_64"
