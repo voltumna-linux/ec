@@ -9,6 +9,7 @@ declare -A IMAGES
 IMAGES[kvm-nehalem]="ec-sde public os.tar wic.vmdk
 		ec-sdk public sh"
 IMAGES[beaglebone]="ec-sde public os.tar net.tar wic wic.bmap
+		ec-sre public os.tar net.tar wic wic.bmap
 		ec-sdk public sh"
 
 for MACHINE in ${!IMAGES[@]}
