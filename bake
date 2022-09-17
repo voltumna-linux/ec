@@ -1,15 +1,15 @@
 MACHINE="kvm-nehalem"
-nice bitbake -k ec-sde ec-sre || return
+nice bitbake -k ec-sre ec-sde || return
 SDKMACHINE="x86_64"
 nice bitbake -k ec-sdk -c populate_sdk || return
 
 MACHINE="beaglebone"
-nice bitbake -k ec-sde ec-sre || return
+nice bitbake -k ec-sre ec-sde || return
 SDKMACHINE="x86_64"
 nice bitbake -k ec-sdk -c populate_sdk || return
 
 MACHINE="mvme2500"
-nice bitbake -k ec-sde
+nice bitbake -k ec-sre ec-sde || return
 SDKMACHINE="x86_64"
 nice bitbake -k ec-sdk -c populate_sdk || return
 
