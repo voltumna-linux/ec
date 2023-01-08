@@ -6,13 +6,13 @@ trap clean EXIT
 DEPLOYDIR=tmp/deploy
 
 declare -A IMAGES
-# IMAGES[kvm-nehalem]="ec-sde public os.tar wic.vmdk
-#		ec-sdk public sh"
 IMAGES[kvm-nehalem]="ec-sdk public sh"
 IMAGES[beaglebone]="ec-sde public os.tar net.tar wic wic.bmap
 		ec-sre public os.tar net.tar wic wic.bmap
 		ec-sdk public sh"
-IMAGES[mvme2500]="ec-sde public os.tar net.tar"
+IMAGES[mvme2500]="ec-sde public os.tar net.tar
+		ec-sre public os.tar net.tar
+		ec-sdk public sh"
 
 for MACHINE in ${!IMAGES[@]}
 do
