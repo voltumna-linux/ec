@@ -12,8 +12,8 @@ SRC_URI = "git://gitlab.elettra.eu/cs/lib/libximc.git;protocol=https;branch=mast
 
 TARGET_CC_ARCH += "${LDFLAGS}"
 
-FILES_${PN} = "${prefix}"
-
 do_install() {
-	oe_runmake install PREFIX=${D}/usr
+	oe_runmake install PREFIX=${D}${prefix}
 }
+
+BBCLASSEXTEND = "native nativesdk"
