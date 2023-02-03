@@ -6,7 +6,6 @@ trap clean EXIT
 DEPLOYDIR=tmp/deploy
 
 declare -A IMAGES
-IMAGES[kvm-nehalem]="ec-sdk public sh"
 IMAGES[beaglebone]="ec-sde public os.tar net.tar wic wic.bmap
 		ec-sre public os.tar net.tar wic wic.bmap
 		ec-sdk public sh"
