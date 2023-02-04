@@ -1,7 +1,14 @@
 require recipes-core/images/voltumna-sdk.inc
+require recipes-core/images/elettra-sdk.inc
 require include/ec.inc
 
-TOOLCHAIN_HOST_TASK_append += "nativesdk-pogo"
+IMAGE_INSTALL_append += "libmodbus-dev libusb1-dev libgpiod-dev \
+	libximc-dev cpptango-dev"
+
+TOOLCHAIN_HOST_TASK_append += "nativesdk-pogo nativesdk-jive \
+	nativesdk-python3-pytango nativesdk-libmodbus-dev \
+	nativesdk-libusb1-dev nativesdk-libgpiod-dev \
+	nativesdk-libximc-dev nativesdk-cpptango-dev"
 
 append_to_osrelease() {
 	cat <<-__EOF__ >> ${IMAGE_ROOTFS}/etc/os-release
@@ -10,12 +17,3 @@ append_to_osrelease() {
 	MACHINE="${MACHINE}"
 	__EOF__
 }
-
-install_ldlinux_sh() {
-	mkdir -p ${SDK_OUTPUT}/${SDKTARGETSYSROOT}/environment-setup.d/
-	cat <<-__EOF__ >> ${SDK_OUTPUT}${SDKTARGETSYSROOT}/environment-setup.d/ldlinux.sh
-	export SDKTARGETLOADER="/usr/lib/ld-linux-x86-64.so.2"
-	__EOF__
-}
-
-POPULATE_SDK_POST_TARGET_COMMAND_append_x86-64 = " install_ldlinux_sh;"
