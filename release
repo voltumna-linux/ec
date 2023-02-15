@@ -12,6 +12,9 @@ IMAGES[beaglebone]="ec-sde public os.tar net.tar wic wic.bmap
 IMAGES[mvme2500]="ec-sde public os.tar net.tar
 		ec-sre public os.tar net.tar
 		ec-sdk public sh"
+IMAGES[mvme5100]="ec-sde public os.tar net.tar
+		ec-sre public os.tar net.tar
+		ec-sdk public sh"
 
 for MACHINE in ${!IMAGES[@]}
 do
