@@ -15,6 +15,9 @@ IMAGES[mvme2500]="ec-sde public os.tar net.tar
 IMAGES[mvme5100]="ec-sde public os.tar net.tar
 		ec-sre public os.tar net.tar
 		ec-sdk public sh"
+IMAGES[mvme7100]="ec-sde public os.tar net.tar
+		ec-sre public os.tar net.tar
+		ec-sdk public sh"
 
 for MACHINE in ${!IMAGES[@]}
 do

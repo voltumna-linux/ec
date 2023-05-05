@@ -13,8 +13,10 @@ nice bitbake -k ec-sre ec-sde
 SDKMACHINE="x86_64"
 nice bitbake -k ec-sdk -c populate_sdk || return
 
-#MACHINE="mvme7100"
-#nice bitbake -k ec-sre
+MACHINE="mvme7100"
+nice bitbake -k ec-sre ec-sde
+SDKMACHINE="x86_64"
+nice bitbake -k ec-sdk -c populate_sdk || return
 
 #MACHINE="beagleboneai"
 #nice bitbake -k ec-sre || return
