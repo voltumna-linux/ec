@@ -4,16 +4,9 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "6a3ed9c94e2ac310bba36012735ed6fa21bc7b68"
-SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/adio.git;protocol=https;branch=master"
+SRCREV = "02e896661ef4a09ae5cfe45d04290dacc6f0cfdc"
+SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/adio.git;protocol=https;branch=devel"
 
 S = "${WORKDIR}/git"
 
 RPROVIDES_${PN} += "kernel-module-adio"
-
-FILES_${PN} += "${sysconfdir}"
-FILES_${PN}-dev = "${includedir}"
-
-do_install_append() {
-	oe_runmake DESTDIR=${D} install
-}
