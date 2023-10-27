@@ -9,7 +9,8 @@ IMAGE_INSTALL_append += "libmodbus-dev libusb1-dev libgpiod-dev \
 TOOLCHAIN_HOST_TASK_append += "nativesdk-pogo nativesdk-jive \
 	nativesdk-python3-pytango nativesdk-libmodbus-dev \
 	nativesdk-libusb1-dev nativesdk-libgpiod-dev \
-	nativesdk-libximc-dev nativesdk-cpptango-dev"
+	nativesdk-libximc-dev nativesdk-cpptango-dev \
+	nativesdk-net-snmp-dev"
 
 append_to_osrelease() {
 	cat <<-__EOF__ >> ${IMAGE_ROOTFS}/etc/os-release
