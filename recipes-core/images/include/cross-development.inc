@@ -1,4 +1,5 @@
 TOOLCHAIN_HOST_TASK_append += "nativesdk-pogo nativesdk-jive \
+        nativesdk-astor \
 	nativesdk-python3-pytango nativesdk-libmodbus-dev \
 	nativesdk-libusb1-dev nativesdk-libgpiod-dev \
 	nativesdk-libximc-dev nativesdk-cpptango-dev \
