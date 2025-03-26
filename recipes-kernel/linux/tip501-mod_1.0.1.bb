@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "46408746163ea33e66f9b293170ee3949e75c4b5"
+SRCREV = "c2456f9e60bfbb61fba13a22bb093481385bb3d6"
 SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/tip501.git;protocol=https;branch=master"
 
 S = "${WORKDIR}/git"

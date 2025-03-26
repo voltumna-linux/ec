@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "a30289bcd331f85b10709ae1a7b3cfcc7af531ce"
+SRCREV = "baba263c63346509be1c2cb11bad767283b81c65"
 SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/digio.git;protocol=https;branch=master"
 
 S = "${WORKDIR}/git"
