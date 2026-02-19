@@ -1,0 +1,4 @@
+MACHINE="mvme2500"
+nice bitbake -k ec-sre ec-sde || return
+SDKMACHINE="x86_64"
+nice bitbake -k ec-sdk -c populate_sdk || return
