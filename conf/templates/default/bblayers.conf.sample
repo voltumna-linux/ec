@@ -12,7 +12,6 @@ BBLAYERS ?= " \
   ##OEROOT##/../meta-dpdk \
   ##OEROOT##/../meta-tango \
   ##OEROOT##/../meta-mingw \
-  ##OEROOT##/../meta-artesyn \
   ##OEROOT##/../meta-intel-fpga \
   ##OEROOT##/../meta-intel \
   ##OEROOT##/../meta-intel-qat \
