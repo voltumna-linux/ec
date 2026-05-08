@@ -6,9 +6,11 @@ SRC_URI = " \
 	file://90-pi.rules \
 	"
 
+S = "${UNPACKDIR}"
+
 do_install() {
  	install -d ${D}${sysconfdir}/udev/rules.d/
-	install -m 0644 ${WORKDIR}/*.rules ${D}${sysconfdir}/udev/rules.d/
+	install -m 0644 ${UNPACKDIR}/*.rules ${D}${sysconfdir}/udev/rules.d/
 }
 
 ### BBCLASSEXTEND = "nativesdk"
