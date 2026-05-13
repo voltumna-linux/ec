@@ -1,8 +1,20 @@
 [submodule "meta-elettra"]
 	path = meta-elettra
 	url = https://github.com/voltumna-linux/meta-elettra.git
-	branch = voltumna-4.y
+	branch = wrynose
 [submodule "meta-voltumna"]
 	path = meta-voltumna
 	url = https://github.com/voltumna-linux/meta-voltumna.git
-	branch = voltumna-4.y
+	branch = wrynose
+[submodule "meta-artesyn"]
+	path = meta-artesyn
+	url = https://github.com/voltumna-linux/meta-artesyn.git
+	branch = wrynose
+[submodule "meta-ti"]
+	path = meta-ti
+	url = https://git.yoctoproject.org/meta-ti
+	branch = wrynose
+[submodule "meta-arm"]
+	path = meta-arm
+	url = https://git.yoctoproject.org/meta-arm
+	branch = wrynose
