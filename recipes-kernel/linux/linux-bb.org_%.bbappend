@@ -37,7 +37,15 @@ KERNEL_DEVICETREE:remove:armv7a = " \
 
 SRC_URI:append = " \
 	file://static_usb_support.cfg \
+        file://6.12.39-ti-arm32-r13.patch \
 	"
+
+# 6.12.39 version for 32-bit
+SRCREV:armv7a = "cdf264c0a5906063a0e2b750d420d77cb992446d"
+PV:armv7a = "6.12.39+git"
+BRANCH:armv7a = "linux-6.12.y"
+
+KERNEL_GIT_URI = "git://github.com/gregkh/linux.git"
 
 SRC_URI[sha256sum] = "f282d4d33ee9f3d679dd1e6c8290236b395ddda051346bb10e71e50c6bab2e7e"
 
