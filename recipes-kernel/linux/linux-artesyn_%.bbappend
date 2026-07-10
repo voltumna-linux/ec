@@ -1,3 +1,5 @@
+require recipes-kernel/linux/linux-production.inc
+
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI:append:mvme5100 = " \

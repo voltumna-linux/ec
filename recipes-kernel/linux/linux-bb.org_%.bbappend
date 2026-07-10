@@ -1,3 +1,5 @@
+require recipes-kernel/linux/linux-production.inc
+
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 KERNEL_DEVICETREE:remove:armv7a = " \
