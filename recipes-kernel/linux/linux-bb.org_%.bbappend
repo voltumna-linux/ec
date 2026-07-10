@@ -57,5 +57,6 @@ KERNEL_CONFIG_FRAGMENTS:append = " \
 
 KERNEL_FEATURES:remove = " features/security/security.scc"
 
-RDEPENDS:${KERNEL_PACKAGE_NAME}-base:remove:ti33x = "prueth-fw pruhsr-fw pruprp-fw"
+RDEPENDS:${KERNEL_PACKAGE_NAME}-base:remove:ti33x = "prueth-fw pruhsr-fw pruprp-fw prusw-fw"
+
 KERNEL_DTBDEST = "${KERNEL_IMAGEDEST}"
