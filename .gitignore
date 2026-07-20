@@ -3,3 +3,5 @@ meta-*
 
 !meta-voltumna
 !meta-elettra
+
+scripts/lib/wic/plugins/source/__pycache__/
