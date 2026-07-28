@@ -3,4 +3,4 @@ TOOLCHAIN_HOST_TASK:append = " nativesdk-pogo nativesdk-jive \
 	nativesdk-libusb1-dev nativesdk-libgpiod-dev \
 	nativesdk-libximc-dev nativesdk-cpptango-dev \
 	nativesdk-net-snmp-dev nativesdk-python3-sinstruments \
-        nativesdk-boogie nativesdk-boost-dev"
+        nativesdk-boogie nativesdk-boost-dev nativesdk-python3-zipapp"
