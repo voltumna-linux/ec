@@ -1,61 +1,71 @@
-clean() {
-	unset IMAGES
-}
-trap clean EXIT
+#!/usr/bin/env bash
 
-DEPLOYDIR=tmp/deploy
+set -euo pipefail
+trap 'echo "Errore alla riga $LINENO"' ERR
 
-declare -A IMAGES
-IMAGES[mvme2500]="ec-sde public os.tar net.tar
-		ec-sre public os.tar net.tar
-		ec-sdk public sh"
-IMAGES[mvme5100]="ec-sde public os.tar net.tar
-		ec-sre public os.tar net.tar
-		ec-sdk public sh"
-IMAGES[mvme6100]="ec-sde public os.tar net.tar
-		ec-sre public os.tar net.tar
-		ec-sdk public sh"
-IMAGES[mvme7100]="ec-sde public os.tar net.tar
-		ec-sre public os.tar net.tar
-		ec-sdk public sh"
-IMAGES[beaglebone]="ec-sde public os.tar net.tar wic wic.bmap
-		ec-sre public os.tar net.tar wic wic.bmap
-		ec-sdk public sh"
+TAR="tar --owner=0 --group=0 --numeric-owner"
 
-for MACHINE in ${!IMAGES[@]}
-do
-	echo "${IMAGES[$MACHINE]}" | while read -r -a DATA
-	do
-		FILENAME=$(basename $DEPLOYDIR/images/$MACHINE/${DATA[0]}-$MACHINE-*.manifest)
-		for EXT in ${DATA[@]:2}
-		do
-			case $EXT in
-				os.tar|net.tar)
-					cp $DEPLOYDIR/images/$MACHINE/$FILENAME $1/${DATA[1]}/
-					FILENAME2=$(basename $DEPLOYDIR/images/$MACHINE/${DATA[0]}-$MACHINE-*.$EXT)
-					xz -cT0 $DEPLOYDIR/images/$MACHINE/$FILENAME2 > $1/${DATA[1]}/$FILENAME2.xz
-					;;
-				wic)
-					cp $DEPLOYDIR/images/$MACHINE/$FILENAME $1/${DATA[1]}/
-					FILENAME2=$(basename -s .$EXT $DEPLOYDIR/images/$MACHINE/${DATA[0]}-$MACHINE-*.$EXT)
-					xz -cT0 $DEPLOYDIR/images/$MACHINE/$FILENAME2.$EXT > $1/${DATA[1]}/$FILENAME2.img.xz
-					;;
-				wic.bmap)
-					cp $DEPLOYDIR/images/$MACHINE/$FILENAME $1/${DATA[1]}/
-					FILENAME2=$(basename -s .$EXT $DEPLOYDIR/images/$MACHINE/${DATA[0]}-$MACHINE-*.$EXT)
-					cp $DEPLOYDIR/images/$MACHINE/$FILENAME2.$EXT $1/${DATA[1]}/$FILENAME2.img.bmap
-					;;
-				wic.vmdk)
-					cp $DEPLOYDIR/images/$MACHINE/$FILENAME $1/${DATA[1]}/
-					FILENAME2=$(basename -s .$EXT $DEPLOYDIR/images/$MACHINE/${DATA[0]}-$MACHINE-*.$EXT)
-					xz -cT0 $DEPLOYDIR/images/$MACHINE/$FILENAME2.$EXT > $1/${DATA[1]}/$FILENAME2.img.vmdk.xz
-					;;
-				sh|zip)
-					cp $DEPLOYDIR/sdk/${DATA[0]}-*-$MACHINE-*.$EXT $1/${DATA[1]}/
-					;;
-			esac
-		done
-	done
+. "$(dirname -- "${BASH_SOURCE[0]}")/bake"
+
+exec 3<<< "$DATI"
+
+while read -r -u 3 machine type image outputdir format; do
+    export MACHINE="$machine"
+    DDIR="tmp/deploy/images/${machine}"
+    TMPDIR=$(mktemp -d) || exit 1
+    trap 'rm -rf -- "$TMPDIR"' EXIT
+    case "$type" in
+        "image")
+            nice bitbake -k "$image"
+            BDIR="tmp/work/"${machine//-/_}"*/${image}/1.0*/rootfs"
+    	    IMAGE_NAME="$(basename $BDIR/.osdir/${image}*)"
+	    case "$format" in
+	        "tar")
+        	    ${TAR} -cf ${1}/${outputdir}/${IMAGE_NAME}.net.tar -C ${BDIR}/.. --exclude='.osdir*' --transform 's;^rootfs;nfsroot;' rootfs
+
+		    case "$machine" in
+		        "mvme2500" | "beaglebone")
+        	            mkdir -p ${TMPDIR}/tftpboot
+                            install -m 644 ${DDIR}/boot.scr.uimg ${TMPDIR}/tftpboot
+                            install -m 644 ${DDIR}/uEnv-${IMAGE_NAME%%"$MACHINE"*}$MACHINE.txt ${TMPDIR}/tftpboot/uEnv.txt
+                            sed -i -e "s,\.osdir,voltumna,g" ${TMPDIR}/tftpboot/uEnv.txt
+        	            ${TAR} -rf ${1}/${outputdir}/${IMAGE_NAME}.net.tar -C ${TMPDIR}/ tftpboot
+			    ;;
+		    esac
+
+        	    xz -T0 ${1}/${outputdir}/${IMAGE_NAME}.net.tar
+        	    ${TAR} -cf ${1}/${outputdir}/${IMAGE_NAME}.os.tar  -C ${BDIR}/.osdir/ ${IMAGE_NAME}
+        	    xz -T0 ${1}/${outputdir}/${IMAGE_NAME}.os.tar
+		    ;;
+		"wic")
+		    if [ -f ${DDIR}/${IMAGE_NAME}.wic.bmap ]; then
+		        cp ${DDIR}/${IMAGE_NAME}.wic.bmap ${1}/${outputdir}/${IMAGE_NAME}.img.bmap
+		    fi
+		    xz -cT0 ${DDIR}/${IMAGE_NAME}.wic > ${1}/${outputdir}/${IMAGE_NAME}.img.xz
+		    ;;
+	        *)
+                    printf 'Format unknwon: %s\n' "$format" >&2
+                    exit 1
+                    ;;
+	    esac
+	    ;;
+        "sdk")
+            nice bitbake -k "$image" -c populate_sdk
+	    case "$format" in
+	        "sh")
+	            cp tmp/deploy/sdk/${image}-x86_64-${machine}-*.sh ${1}/${outputdir}
+		    ;;
+	        *)
+                    printf 'Format unknwon: %s\n' "$format" >&2
+                    exit 1
+                    ;;
+	    esac
+	    ;;
+        *)
+	    printf 'Type unknown: %s\n' "$type" >&2
+	    ;;
+    esac
+    rm -fr -- $TMPDIR
 done
 
-unset IMAGES
+exec 3<&-
