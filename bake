@@ -1,24 +1,46 @@
-MACHINE="mvme2500"
-nice bitbake -k ec-sre ec-sde || return
-SDKMACHINE="x86_64"
-nice bitbake -k ec-sdk -c populate_sdk || return
+#!/usr/bin/env bash
 
-MACHINE="mvme5100"
-nice bitbake -k ec-sre ec-sde
-SDKMACHINE="x86_64"
-nice bitbake -k ec-sdk -c populate_sdk || return
+set -euo pipefail
+trap 'printf "Errore alla riga %s\n" "$LINENO" >&2' ERR
 
-MACHINE="mvme6100"
-nice bitbake -k ec-sre ec-sde
-SDKMACHINE="x86_64"
-nice bitbake -k ec-sdk -c populate_sdk || return
+read -r -d '' DATI <<'EOF' || true
+mvme2500 image ec-sde public tar
+mvme2500 image ec-sre public tar
+mvme2500 sdk ec-sdk public sh
+mvme5100 image ec-sde public tar
+mvme5100 image ec-sre public tar
+mvme5100 sdk ec-sdk public sh
+mvme6100 image ec-sde public tar
+mvme6100 image ec-sre public tar
+mvme6100 sdk ec-sdk public sh
+mvme7100 image ec-sde public tar
+mvme7100 image ec-sre public tar
+mvme7100 sdk ec-sdk public sh
+beaglebone image ec-sde public tar
+beaglebone image ec-sde public wic
+beaglebone image ec-sre public tar
+beaglebone image ec-sre public wic
+beaglebone sdk ec-sdk public sh
+EOF
 
-MACHINE="mvme7100"
-nice bitbake -k ec-sre ec-sde
-SDKMACHINE="x86_64"
-nice bitbake -k ec-sdk -c populate_sdk || return
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    exec 3<<< "$DATI"
 
-MACHINE="beaglebone"
-nice bitbake -k ec-sre ec-sde || return
-SDKMACHINE="x86_64"
-nice bitbake -k ec-sdk -c populate_sdk || return
+    while read -r -u 3 machine type image outputdir format; do
+        export MACHINE="$machine"
+
+        case "$type" in
+            image)
+                nice bitbake -k "$image" -c rootfs
+                ;;
+            sdk)
+                ;;
+            *)
+                printf 'Type unknown: %s\n' "$type" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    exec 3<&-
+fi
