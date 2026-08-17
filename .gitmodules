@@ -18,3 +18,11 @@
 	path = meta-arm
 	url = https://git.yoctoproject.org/meta-arm
 	branch = wrynose
+[submodule "meta-kria"]
+	path = meta-kria
+	url = https://github.com/voltumna-linux/meta-kria.git
+	branch = wrynose
+[submodule "meta-xilinx"]
+	path = meta-xilinx
+	url = https://github.com/voltumna-linux/meta-xilinx.git
+	branch = wrynose

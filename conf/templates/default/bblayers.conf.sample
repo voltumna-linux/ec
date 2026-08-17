@@ -10,6 +10,12 @@ BBLAYERS ?= " \
   ##OEROOT##/../../meta-elettra \
   ##OEROOT##/../../meta-voltumna \
   ##OEROOT##/../../meta-artesyn \
+  ##OEROOT##/../../meta-xilinx/meta-xilinx-core \
+  ##OEROOT##/../../meta-xilinx/meta-xilinx-standalone \
+  ##OEROOT##/../../meta-xilinx/meta-xilinx-standalone-sdt \
+  ##OEROOT##/../../meta-xilinx/meta-xilinx-multimedia \
+  ##OEROOT##/../../meta-xilinx/meta-microblaze \
+  ##OEROOT##/../../meta-kria \
   ##OEROOT##/../../meta-arm/meta-arm \
   ##OEROOT##/../../meta-arm/meta-arm-toolchain \
   ##OEROOT##/../../meta-ti/meta-ti-bsp \

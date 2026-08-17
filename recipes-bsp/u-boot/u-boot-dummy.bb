@@ -11,6 +11,10 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/GPL-2.0-only;m
 
 UBOOT_MACHINE = "dummy"
 PROVIDES += "virtual/bootloader"
+# Kria BOOT.bin still needs the real U-Boot ELF.  On these machines this
+# recipe is built explicitly only to deploy boot.scr.uimg and uEnv.txt.
+PROVIDES:remove:k24-smk-kd-sdt = "virtual/bootloader"
+PROVIDES:remove:k26-smk-kr-sdt = "virtual/bootloader"
 
 S = "${UNPACKDIR}"
 SRC_URI = " \

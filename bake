@@ -21,6 +21,12 @@ beaglebone image ec-sde public wic
 beaglebone image ec-sre public tar
 beaglebone image ec-sre public wic
 beaglebone sdk ec-sdk public sh
+k24-smk-kd-sdt image ec-sde public wic
+k24-smk-kd-sdt image ec-sre public wic
+k24-smk-kd-sdt sdk ec-sdk public sh
+k26-smk-kr-sdt image ec-sde public wic
+k26-smk-kr-sdt image ec-sre public wic
+k26-smk-kr-sdt sdk ec-sdk public sh
 EOF
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
