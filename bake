@@ -31,7 +31,7 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
 
         case "$type" in
             image)
-                nice bitbake -k "$image" -c rootfs
+                nice bitbake -k "$image"
                 ;;
             sdk)
                 ;;
