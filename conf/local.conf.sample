@@ -265,3 +265,6 @@ PACKAGECONFIG:append:pn-qemu-system-native = " sdl"
 # track the version of this file when it was generated. This can safely be ignored if
 # this doesn't mean anything to you.
 CONF_VERSION = "2"
+
+PSEUDO_IGNORE_PATHS:append:pn-ec-sre = ",/tmp/installed-pkgs,/tmp/ca-certificates.tmp."
+PSEUDO_IGNORE_PATHS:append:pn-ec-sde = ",/tmp/installed-pkgs,/tmp/ca-certificates.tmp."
