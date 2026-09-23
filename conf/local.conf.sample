@@ -239,3 +239,6 @@ export PERL_HASH_SEED = "0"
 export TZ = 'UTC'
 export SOURCE_DATE_EPOCH ??= "1520598896"
 REPRODUCIBLE_TIMESTAMP_ROOTFS ??= "1520598896"
+
+PSEUDO_IGNORE_PATHS:append:pn-ec-sre = ",/tmp/installed-pkgs,/tmp/ca-certificates.tmp."
+PSEUDO_IGNORE_PATHS:append:pn-ec-sde = ",/tmp/installed-pkgs,/tmp/ca-certificates.tmp."
