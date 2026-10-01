@@ -1,32 +1,80 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-trap 'echo "Errore alla riga $LINENO"' ERR
+trap 'echo "Error at line $LINENO"' ERR
 
 . "$(dirname -- "${BASH_SOURCE[0]}")/bake"
+
+if (( ${#@} == 0 )); then
+    printf 'Usage: %s <outputdir>\n' "$0" >&2
+    exit 1
+fi
+
+if [[ ! -d "$1" ]]; then
+    printf 'Output dir not found: %s\n' "$1" >&2
+    exit 1
+fi
+
+# One release at a time on the target tree
+exec 9>"${1}/.release.lock"
+if ! flock -n 9; then
+    printf 'Another release is running (lock: %s/.release.lock)\n' "$1" >&2
+    exit 1
+fi
+
+FAILED=()
+
+fail() {
+    printf '%s\n' "$1" >&2
+    FAILED+=("$1")
+}
+
+# xz with atomic write: an interruption leaves no truncated files
+pack_xz() {
+    local src=$1 dest=$2
+    local tmp="${dest}.tmp.$$"
+    if ! xz -cT0 "$src" > "$tmp"; then
+        rm -f "$tmp"
+        fail "Compression failed: ${src}"
+        return 1
+    fi
+    mv -f -- "$tmp" "$dest"
+}
 
 exec 3<<< "$DATI"
 
 while read -r -u 3 machine type image outputdir format; do
     export MACHINE="$machine"
     DDIR="tmp/deploy/images/${machine}"
+    mkdir -p "${1}/${outputdir}"
     case "$type" in
         "image")
-            nice bitbake -k "$image"
+            if ! nice bitbake -k "$image"; then
+                fail "bitbake failed: ${machine}/${image}"
+                continue
+            fi
             case "$format" in
                 "tar")
                     for archive in net os; do
-                        artifact=$(readlink -e -- "${DDIR}/${image}-${machine}.${archive}.tar")
-                        xz -cT0 "$artifact" > "${1}/${outputdir}/$(basename -- "$artifact").xz"
+                        artifact=$(readlink -e -- "${DDIR}/${image}-${machine}.${archive}.tar" || true)
+                        if [[ -z "$artifact" ]]; then
+                            fail "Artifact not found: ${DDIR}/${image}-${machine}.${archive}.tar (${machine}/${image})"
+                            continue 2
+                        fi
+                        pack_xz "$artifact" "${1}/${outputdir}/$(basename -- "$artifact").xz" || continue 2
                     done
                     ;;
                 "wic")
-                    artifact=$(readlink -e -- "${DDIR}/${image}-${machine}.wic")
+                    artifact=$(readlink -e -- "${DDIR}/${image}-${machine}.wic" || true)
+                    if [[ -z "$artifact" ]]; then
+                        fail "Artifact not found: ${DDIR}/${image}-${machine}.wic (${machine}/${image})"
+                        continue
+                    fi
                     IMAGE_NAME=$(basename -- "$artifact" .wic)
                     if [ -f "${artifact}.bmap" ]; then
                         cp "${artifact}.bmap" "${1}/${outputdir}/${IMAGE_NAME}.img.bmap"
                     fi
-                    xz -cT0 "$artifact" > "${1}/${outputdir}/${IMAGE_NAME}.img.xz"
+                    pack_xz "$artifact" "${1}/${outputdir}/${IMAGE_NAME}.img.xz" || continue
                     ;;
                 *)
                     printf 'Format unknown: %s\n' "$format" >&2
@@ -35,10 +83,21 @@ while read -r -u 3 machine type image outputdir format; do
             esac
             ;;
         "sdk")
-            nice bitbake -k "$image" -c populate_sdk
+            if ! nice bitbake -k "$image" -c populate_sdk; then
+                fail "bitbake failed: ${machine}/${image} (populate_sdk)"
+                continue
+            fi
             case "$format" in
                 "sh")
-                    cp tmp/deploy/sdk/"${image}-x86_64-${machine}-"*.sh "${1}/${outputdir}"
+                    mapfile -t sdks < <(compgen -G "tmp/deploy/sdk/${image}-x86_64-${machine}-*.sh" || true)
+                    if (( ${#sdks[@]} == 0 )); then
+                        fail "SDK not found for: ${machine}"
+                        continue
+                    elif (( ${#sdks[@]} > 1 )); then
+                        printf 'Multiple SDKs matched for %s, using the first one:\n' "$machine" >&2
+                        printf '  %s\n' "${sdks[@]}" >&2
+                    fi
+                    cp -- "${sdks[0]}" "${1}/${outputdir}"
                     ;;
                 *)
                     printf 'Format unknown: %s\n' "$format" >&2
@@ -54,3 +113,16 @@ while read -r -u 3 machine type image outputdir format; do
 done
 
 exec 3<&-
+
+# Manifest of released artifacts
+(
+    cd -- "$1"
+    find . -type f ! -name SHA256SUMS ! -name '.release.lock' -print0 |
+        sort -z | xargs -0 -r sha256sum --
+) > "${1}/SHA256SUMS"
+
+if (( ${#FAILED[@]} )); then
+    printf 'Incomplete release:\n' >&2
+    printf '  %s\n' "${FAILED[@]}" >&2
+    exit 1
+fi
