@@ -1,71 +1,167 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
-trap 'echo "Errore alla riga $LINENO"' ERR
+trap 'printf "Error at line %s\n" "$LINENO" >&2' ERR
 
 TAR="tar --owner=0 --group=0 --numeric-owner"
 
 . "$(dirname -- "${BASH_SOURCE[0]}")/bake"
+
+if (( ${#@} == 0 )); then
+    printf 'Usage: %s <outputdir>\n' "$0" >&2
+    exit 1
+fi
+
+if [[ ! -d "$1" ]]; then
+    printf 'Output dir not found: %s\n' "$1" >&2
+    exit 1
+fi
+
+# One release at a time on the target tree
+exec 9>"${1}/.release.lock"
+if ! flock -n 9; then
+    printf 'Another release is running (lock: %s/.release.lock)\n' "$1" >&2
+    exit 1
+fi
+
+WORKTMP=$(mktemp -d) || exit 1
+trap 'rm -rf -- "$WORKTMP"' EXIT
+
+FAILED=()
+
+fail() {
+    printf '%s\n' "$1" >&2
+    FAILED+=("$1")
+}
+
+# xz with atomic write: an interruption leaves no truncated files
+pack_xz() {
+    local src=$1 dest=$2
+    local tmp="${dest}.tmp.$$"
+    if ! xz -cT0 "$src" > "$tmp"; then
+        rm -f "$tmp"
+        fail "Compression failed: ${src}"
+        return 1
+    fi
+    mv -f -- "$tmp" "$dest"
+}
 
 exec 3<<< "$DATI"
 
 while read -r -u 3 machine type image outputdir format; do
     export MACHINE="$machine"
     DDIR="tmp/deploy/images/${machine}"
-    TMPDIR=$(mktemp -d) || exit 1
-    trap 'rm -rf -- "$TMPDIR"' EXIT
+    mkdir -p "${1}/${outputdir}"
+    MACHTMP="${WORKTMP}/${machine}"
+    mkdir -p "${MACHTMP}"
     case "$type" in
         "image")
-            nice bitbake -k "$image"
-            BDIR="tmp/work/"${machine//-/_}"*/${image}/1.0*/rootfs"
-    	    IMAGE_NAME="$(basename $BDIR/.osdir/${image}*)"
+            if ! nice bitbake -k "$image"; then
+                fail "bitbake failed: ${machine}/${image}"
+                continue
+            fi
+            rootfs_glob="tmp/work/${machine//-/_}*/${image}/1.0*/rootfs"
+            mapfile -t roots < <(compgen -G "$rootfs_glob" || true)
+            if (( ${#roots[@]} == 0 )); then
+                fail "rootfs not found: ${rootfs_glob} (${machine}/${image})"
+                continue
+            fi
+            BDIR="${roots[0]}"
+            mapfile -t images < <(compgen -G "${BDIR}/.osdir/${image}*" || true)
+            if (( ${#images[@]} == 0 )); then
+                fail "image not found: ${BDIR}/.osdir/${image}* (${machine}/${image})"
+                continue
+            fi
+            IMAGE_NAME=$(basename -- "${images[0]}")
 	    case "$format" in
 	        "tar")
-        	    ${TAR} -cf ${1}/${outputdir}/${IMAGE_NAME}.net.tar -C ${BDIR}/.. --exclude='.osdir*' --transform 's;^rootfs;nfsroot;' rootfs
+        	    if ! ${TAR} -cf "${MACHTMP}/${IMAGE_NAME}.net.tar" -C "${BDIR}/.." --exclude='.osdir*' --transform 's;^rootfs;nfsroot;' rootfs; then
+        	        fail "tar failed: ${machine}/${image} (net.tar)"
+        	        continue
+        	    fi
 
 		    case "$machine" in
 		        "mvme2500" | "beaglebone")
-        	            mkdir -p ${TMPDIR}/tftpboot
-                            install -m 644 ${DDIR}/boot.scr.uimg ${TMPDIR}/tftpboot
-                            install -m 644 ${DDIR}/uEnv.txt ${TMPDIR}/tftpboot/uEnv.txt
-                            sed -i -e "s,\.osdir,voltumna,g" ${TMPDIR}/tftpboot/uEnv.txt
-        	            ${TAR} -rf ${1}/${outputdir}/${IMAGE_NAME}.net.tar -C ${TMPDIR}/ tftpboot
+        	            mkdir -p "${MACHTMP}/tftpboot"
+                            if ! install -m 644 "${DDIR}/boot.scr.uimg" "${MACHTMP}/tftpboot" ||
+                               ! install -m 644 "${DDIR}/uEnv.txt" "${MACHTMP}/tftpboot/uEnv.txt"; then
+                                fail "tftpboot files not found: ${DDIR} (${machine})"
+                                continue
+                            fi
+                            sed -i -e "s,\.osdir,voltumna,g" "${MACHTMP}/tftpboot/uEnv.txt"
+        	            if ! ${TAR} -rf "${MACHTMP}/${IMAGE_NAME}.net.tar" -C "${MACHTMP}/" tftpboot; then
+        	                fail "tar failed: ${machine}/${image} (tftpboot)"
+        	                continue
+        	            fi
 			    ;;
 		    esac
 
-        	    xz -T0 ${1}/${outputdir}/${IMAGE_NAME}.net.tar
-        	    ${TAR} -cf ${1}/${outputdir}/${IMAGE_NAME}.os.tar  -C ${BDIR}/.osdir/ ${IMAGE_NAME}
-        	    xz -T0 ${1}/${outputdir}/${IMAGE_NAME}.os.tar
+        	    pack_xz "${MACHTMP}/${IMAGE_NAME}.net.tar" "${1}/${outputdir}/${IMAGE_NAME}.net.tar.xz" || continue
+        	    if ! ${TAR} -cf "${MACHTMP}/${IMAGE_NAME}.os.tar" -C "${BDIR}/.osdir/" "${IMAGE_NAME}"; then
+        	        fail "tar failed: ${machine}/${image} (os.tar)"
+        	        continue
+        	    fi
+        	    pack_xz "${MACHTMP}/${IMAGE_NAME}.os.tar" "${1}/${outputdir}/${IMAGE_NAME}.os.tar.xz" || continue
 		    ;;
 		"wic")
-		    if [ -f ${DDIR}/${IMAGE_NAME}.wic.bmap ]; then
-		        cp ${DDIR}/${IMAGE_NAME}.wic.bmap ${1}/${outputdir}/${IMAGE_NAME}.img.bmap
+		    artifact=$(readlink -e -- "${DDIR}/${IMAGE_NAME}.wic" || true)
+		    if [[ -z "$artifact" ]]; then
+		        fail "Artifact not found: ${DDIR}/${IMAGE_NAME}.wic (${machine}/${image})"
+		        continue
 		    fi
-		    xz -cT0 ${DDIR}/${IMAGE_NAME}.wic > ${1}/${outputdir}/${IMAGE_NAME}.img.xz
+		    if [ -f "${artifact}.bmap" ]; then
+		        cp "${artifact}.bmap" "${1}/${outputdir}/${IMAGE_NAME}.img.bmap"
+		    fi
+		    pack_xz "$artifact" "${1}/${outputdir}/${IMAGE_NAME}.img.xz" || continue
 		    ;;
 	        *)
-                    printf 'Format unknwon: %s\n' "$format" >&2
+                    printf 'Format unknown: %s\n' "$format" >&2
                     exit 1
                     ;;
 	    esac
 	    ;;
         "sdk")
-            nice bitbake -k "$image" -c populate_sdk
+            if ! nice bitbake -k "$image" -c populate_sdk; then
+                fail "bitbake failed: ${machine}/${image} (populate_sdk)"
+                continue
+            fi
 	    case "$format" in
 	        "sh")
-	            cp tmp/deploy/sdk/${image}-x86_64-${machine}-*.sh ${1}/${outputdir}
+	            mapfile -t sdks < <(compgen -G "tmp/deploy/sdk/${image}-x86_64-${machine}-*.sh" || true)
+	            if (( ${#sdks[@]} == 0 )); then
+	                fail "SDK not found for: ${machine}"
+	                continue
+	            elif (( ${#sdks[@]} > 1 )); then
+	                printf 'Multiple SDKs matched for %s, using the first one:\n' "$machine" >&2
+	                printf '  %s\n' "${sdks[@]}"
+	            fi
+	            cp -- "${sdks[0]}" "${1}/${outputdir}"
 		    ;;
 	        *)
-                    printf 'Format unknwon: %s\n' "$format" >&2
+                    printf 'Format unknown: %s\n' "$format" >&2
                     exit 1
                     ;;
 	    esac
 	    ;;
         *)
 	    printf 'Type unknown: %s\n' "$type" >&2
+	    exit 1
 	    ;;
     esac
-    rm -fr -- $TMPDIR
+    rm -rf -- "${MACHTMP}"
 done
 
 exec 3<&-
+
+# Manifest of released artifacts
+(
+    cd -- "$1"
+    find . -type f ! -name SHA256SUMS ! -name '.release.lock' -print0 |
+        sort -z | xargs -0 -r sha256sum --
+) > "${1}/SHA256SUMS"
+
+if (( ${#FAILED[@]} )); then
+    printf 'Incomplete release:\n' >&2
+    printf '  %s\n' "${FAILED[@]}"
+    exit 1
+fi
