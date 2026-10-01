@@ -1,4 +1,6 @@
-BASEDIR="${PWD}/`dirname ${BASH_SOURCE}`"
+# shellcheck shell=bash
+# (sourced file, not executable: no shebang on purpose)
+BASEDIR="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
 
 export BITBAKEDIR="${BASEDIR}/meta-voltumna/bitbake"
 export TEMPLATECONF="${BASEDIR}/conf"
@@ -7,12 +9,13 @@ export DISTRO="ec"
 export MACHINE
 export SDKMACHINE
 
-unset BB_ENV_PASSTHROUGH_ADDITIONS
-unset BB_ENV_EXTRAWHITE
-
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-DESCRIBE=$(git -C ${BASEDIR} describe --always --dirty)
-IMAGE_VERSION=$(echo $DESCRIBE | sed -n 's/[0-9a-zA-Z]*-[0-9]*\.[0-9]*\(.*\)/\1/p')
+# BB_ENV_EXTRAWHITE was removed upstream; extend (do not reset)
+# BB_ENV_PASSTHROUGH_ADDITIONS so caller additions survive.
+DESCRIBE=$(git -C "${BASEDIR}" describe --always --dirty || true)
+IMAGE_VERSION=$(echo "$DESCRIBE" | sed -n 's/[0-9a-zA-Z]*-[0-9]*\.[0-9]*\(.*\)/\1/p')
+if [[ -z "$IMAGE_VERSION" ]]; then
+    printf 'WARNING: IMAGE_VERSION empty from git describe "%s": DISTRO_VERSION falls back to 2.9\n' "$DESCRIBE" >&2
+fi
 export IMAGE_VERSION
-export BB_ENV_PASSTHROUGH_ADDITIONS="$BB_ENV_PASSTHROUGH_ADDITIONS IMAGE_VERSION DL_DIR SSTATE_DIR"
+export BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS:-} IMAGE_VERSION DL_DIR SSTATE_DIR"
 source "${BASEDIR}/meta-voltumna/openembedded-core/oe-init-build-env" build "$@"
