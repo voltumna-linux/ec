@@ -29,17 +29,23 @@ k26-smk-kr-sdt image ec-sre public wic
 k26-smk-kr-sdt sdk ec-sdk public sh
 EOF
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+build_all() {
+    local FAILED=()
+
     exec 3<<< "$DATI"
 
+    # shellcheck disable=SC2034  # outputdir/format are columns of the table shared with release
     while read -r -u 3 machine type image outputdir format; do
         export MACHINE="$machine"
 
         case "$type" in
             image)
-                nice bitbake -k "$image"
+                if ! nice bitbake -k "$image"; then
+                    FAILED+=("${machine}/${image}")
+                fi
                 ;;
             sdk)
+                continue
                 ;;
             *)
                 printf 'Type unknown: %s\n' "$type" >&2
@@ -49,4 +55,14 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     done
 
     exec 3<&-
+
+    if (( ${#FAILED[@]} )); then
+        printf 'Failed builds:\n' >&2
+        printf '  %s\n' "${FAILED[@]}" >&2
+        return 1
+    fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    build_all
 fi
