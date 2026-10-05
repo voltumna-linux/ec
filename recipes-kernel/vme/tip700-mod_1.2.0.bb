@@ -1,11 +1,11 @@
-SUMMARY = "Tha kernel module driver for VME ADIO 5718"
+SUMMARY = "Tha kernel module driver for VME TIP700"
 LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "7eb120fb972bca5dcbfc8985e19cf61865dad4d3"
-SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/adio.git;protocol=https;branch=master"
+SRCREV = "1e0ef0de909f16dd690587a6aa39275d2c5e41e9"
+SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/tip700.git;protocol=https;branch=master"
 
 S = "${WORKDIR}/git"
 
@@ -16,4 +16,4 @@ do_install:append() {
 	install -m 0644 ${S}/udev/*.rules ${D}${sysconfdir}/udev/rules.d/
 }
 
-RPROVIDES:${PN} += "kernel-module-adio"
+RPROVIDES:${PN} += "kernel-module-tip700"
