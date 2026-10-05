@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "2f42d54718078582143ce96f0b4cdda9b154709a"
+SRCREV = "a70e735611057e42e2ea680b8d956daa3c972308"
 SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/mio.git;protocol=https;branch=master"
 
 FILES:${PN} += "${sysconfdir}/udev/rules.d"

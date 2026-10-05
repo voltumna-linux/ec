@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "2486253fd4d5740ecaf66e078354ac540495102b"
+SRCREV = "97db508b882518e7ee815ca76ad44ab9474dcf6a"
 SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/tip675.git;protocol=https;branch=master"
 
 FILES:${PN} += "${sysconfdir}/udev/rules.d"

@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "a4ab7083a40df54b7af90bb2f10bdd61c3f838ff"
+SRCREV = "3d5ecc8b71c1bb1b5ba805f121fd4ec240703b4c"
 SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/pscip.git;protocol=https;branch=master"
 
 FILES:${PN} += "${sysconfdir}/udev/rules.d"
