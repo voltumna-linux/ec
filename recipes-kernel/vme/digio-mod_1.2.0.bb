@@ -1,11 +1,11 @@
-SUMMARY = "Tha kernel module driver for VME TIP501"
+SUMMARY = "Tha kernel module driver for VME DIGIO 5715"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=12f884d2ae1ff87c09e5b7ccc2c4ca7e"
 
 inherit module
 
-SRCREV = "c2456f9e60bfbb61fba13a22bb093481385bb3d6"
-SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/tip501.git;protocol=https;branch=master"
+SRCREV = "b59b9e0a798a9bb72450b314e3d221923a6465b7"
+SRC_URI = "git://gitlab.elettra.eu/cs/drv/mods/digio.git;protocol=https;branch=master"
 
 S = "${WORKDIR}/git"
 
@@ -16,4 +16,4 @@ do_install_append() {
 	install -m 0644 ${S}/udev/*.rules ${D}${sysconfdir}/udev/rules.d/
 }
 
-RPROVIDES_${PN} += "kernel-module-tip501"
+RPROVIDES_${PN} += "kernel-module-digio"
