@@ -20,8 +20,8 @@
 	branch = wrynose
 [submodule "meta-kria"]
 	path = meta-kria
-	url = https://github.com/voltumna-linux/meta-kria.git
-	branch = wrynose
+	url = https://github.com/Xilinx/meta-kria.git
+	branch = rel-v2026.2
 [submodule "meta-xilinx"]
 	path = meta-xilinx
 	url = https://github.com/Xilinx/meta-xilinx.git
