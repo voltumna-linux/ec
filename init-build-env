@@ -12,10 +12,14 @@ export SDKMACHINE
 # BB_ENV_EXTRAWHITE was removed upstream; extend (do not reset)
 # BB_ENV_PASSTHROUGH_ADDITIONS so caller additions survive.
 DESCRIBE=$(git -C "${BASEDIR}" describe --always --dirty || true)
-IMAGE_VERSION=$(echo "$DESCRIBE" | awk -F- '$2 ~ /^[0-9]+\.[0-9]+$/ { for (i = 3; i <= NF; i++) printf (i == 3 ? "%s" : "-%s"), $i; print "" }')
-if [[ -z "$IMAGE_VERSION" ]]; then
-    printf 'WARNING: IMAGE_VERSION empty from git describe "%s": DISTRO_VERSION falls back to 4.0\n' "$DESCRIBE" >&2
-fi
+IMAGE_VERSION=$(echo "$DESCRIBE" | sed -n 's/[0-9a-zA-Z]*-[0-9]*\.[0-9]*\(.*\)/\1/p')
 export IMAGE_VERSION
-export BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS:-} IMAGE_VERSION DL_DIR SSTATE_DIR"
+
+# The hash equivalence DB must sit with the shared sstate cache: a per-build
+# DB means a build can only reuse equivalences it recorded itself.
+if [[ -n "${SSTATE_DIR:-}" ]]; then
+    export BB_HASHSERVE_DB_DIR="${BB_HASHSERVE_DB_DIR:-$SSTATE_DIR}"
+fi
+
+export BB_ENV_PASSTHROUGH_ADDITIONS="${BB_ENV_PASSTHROUGH_ADDITIONS:-} IMAGE_VERSION DL_DIR SSTATE_DIR BB_HASHSERVE_DB_DIR"
 source "${BASEDIR}/meta-voltumna/openembedded-core/oe-init-build-env" build "$@"
