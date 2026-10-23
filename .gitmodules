@@ -25,4 +25,4 @@
 [submodule "meta-xilinx"]
 	path = meta-xilinx
 	url = https://github.com/Xilinx/meta-xilinx.git
-	branch = wrynose
+	branch = rel-v2026.2
