@@ -16,4 +16,4 @@ do_install_append() {
 	install -m 0644 ${S}/udev/*.rules ${D}${sysconfdir}/udev/rules.d/
 }
 
-RPROVIDES_${PN} += "kernel-module-digio"
+RPROVIDES_${PN} += "kernel-module-mio"
