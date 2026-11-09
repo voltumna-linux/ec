@@ -6,3 +6,35 @@
 	path = meta-voltumna
 	url = https://github.com/voltumna-linux/meta-voltumna.git
 	branch = scarthgap
+[submodule "meta-artesyn"]
+	path = meta-artesyn
+	url = https://github.com/voltumna-linux/meta-artesyn.git
+	branch = scarthgap
+[submodule "meta-ti"]
+	path = meta-ti
+	url = https://git.yoctoproject.org/meta-ti
+	branch = scarthgap
+[submodule "meta-arm"]
+	path = meta-arm
+	url = https://git.yoctoproject.org/meta-arm
+	branch = scarthgap
+[submodule "meta-kria"]
+	path = meta-kria
+	url = https://github.com/Xilinx/meta-kria.git
+	branch = rel-v2026.1
+[submodule "meta-xilinx"]
+	path = meta-xilinx
+	url = https://github.com/Xilinx/meta-xilinx.git
+	branch = rel-v2026.1
+[submodule "meta-kria-apps"]
+	path = meta-kria-apps
+	url = https://github.com/Xilinx/meta-kria-apps.git
+	branch = rel-v2026.1
+[submodule "meta-xilinx-tsn"]
+	path = meta-xilinx-tsn
+	url = https://github.com/Xilinx/meta-xilinx-tsn.git
+	branch = rel-v2026.1
+[submodule "meta-security"]
+	path = meta-security
+	url = https://git.yoctoproject.org/meta-security
+	branch = scarthgap
