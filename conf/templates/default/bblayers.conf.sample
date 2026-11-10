@@ -17,7 +17,6 @@ BBLAYERS ?= " \
   ##OEROOT##/../../meta-xilinx/meta-microblaze \
   ##OEROOT##/../../meta-kria/meta-kria-bsp \
   ##OEROOT##/../../meta-kria/meta-kria-core \
-  ##OEROOT##/../../meta-kria-apps \
   ##OEROOT##/../../meta-arm/meta-arm \
   ##OEROOT##/../../meta-arm/meta-arm-toolchain \
   ##OEROOT##/../../meta-ti/meta-ti-bsp \
