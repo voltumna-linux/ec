@@ -4,18 +4,6 @@ set -euo pipefail
 trap 'printf "Errore alla riga %s\n" "$LINENO" >&2' ERR
 
 read -r -d '' DATI <<'EOF' || true
-mvme2500 image ec-sde public tar
-mvme2500 image ec-sre public tar
-mvme2500 sdk ec-sdk public sh
-mvme5100 image ec-sde public tar
-mvme5100 image ec-sre public tar
-mvme5100 sdk ec-sdk public sh
-mvme6100 image ec-sde public tar
-mvme6100 image ec-sre public tar
-mvme6100 sdk ec-sdk public sh
-mvme7100 image ec-sde public tar
-mvme7100 image ec-sre public tar
-mvme7100 sdk ec-sdk public sh
 beaglebone image ec-sde public tar
 beaglebone image ec-sde public wic
 beaglebone image ec-sre public tar
