@@ -1,0 +1,103 @@
+Subject: [PATCH] imx547: use video ops for frame interval callbacks
+
+The frame interval callbacks live in struct v4l2_subdev_video_ops (named
+g_frame_interval/s_frame_interval, without the v4l2_subdev_state
+argument) in the 6.6 kernel this module is built against.  The pad ops
+get_frame_interval/set_frame_interval entries used here belong to a
+different V4L2 subdev API revision and do not compile.
+
+Register the callbacks through the video ops, matching the kernel's
+v4l2_subdev.c dispatch of VIDIOC_SUBDEV_G/S_FRAME_INTERVAL.
+
+Upstream-Status: Pending
+---
+ imx547.c | 20 +++++++-------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/imx547.c b/imx547.c
+index 51a227d..6e6390f 100644
+--- a/imx547.c
++++ b/imx547.c
+@@ -519,51 +519,47 @@ static int imx547_set_fmt(struct v4l2_subdev *sd,
+ 
+     mutex_unlock(&imx547->lock);
+ 
+     return err;
+ }
+ 
+ 
+ /**
+  * imx547_g_frame_interval - Get the frame interval
+  * @sd: Pointer to V4L2 Sub device structure
+- * @sd_state: Pointer to V4L2 Sub device state information structure
+  * @fi: Pointer to V4l2 Sub device frame interval structure
+  *
+  * This function is used to get the frame interval.
+  *
+  * Return: 0 on success
+  */
+ static int imx547_g_frame_interval(struct v4l2_subdev *sd,
+-                   struct v4l2_subdev_state *sd_state,
+                    struct v4l2_subdev_frame_interval *fi)
+ {
+     struct stimx547 *imx547 = to_imx547(sd);
+ 
+     fi->interval = imx547->frame_interval;
+     dev_dbg(&imx547->client->dev, "%s frame rate = %d / %d\n", __func__, imx547->frame_interval.numerator, imx547->frame_interval.denominator);
+ 
+     return 0;
+ }
+ 
+ /**
+  * imx547_s_frame_interval - Set the frame interval
+  * @sd: Pointer to V4L2 Sub device structure
+- * @sd_state: Pointer to V4L2 Sub device state information structure
+  * @fi: Pointer to V4l2 Sub device frame interval structure
+  *
+  * This function is used to set the frame interval.
+  *
+  * Return: 0 on success
+  */
+ static int imx547_s_frame_interval(struct v4l2_subdev *sd,
+-                   struct v4l2_subdev_state *sd_state,
+                    struct v4l2_subdev_frame_interval *fi)
+ {
+     struct stimx547 *imx547 = to_imx547(sd);
+     struct v4l2_ctrl *ctrl = imx547->ctrls.exposure;
+     int min, max, def;
+     int ret;
+     u32 min_reg_shs;
+ 
+     mutex_lock(&imx547->lock);
+     imx547->frame_interval = fi->interval;
+@@ -967,26 +963,26 @@ static int imx547_set_frame_interval(struct stimx547 *priv)
+     return 0;
+ 
+ fail:
+     dev_err(&priv->client->dev, "%s error = %d\n", __func__, err);
+     return err;
+ }
+ 
+ static const struct v4l2_subdev_pad_ops imx547_pad_ops = {
+     .get_fmt = imx547_get_fmt,
+     .set_fmt = imx547_set_fmt,
+-    .get_frame_interval = imx547_g_frame_interval,
+-    .set_frame_interval = imx547_s_frame_interval,
+ };
+ 
+ static const struct v4l2_subdev_video_ops imx547_video_ops = {
+     .s_stream = imx547_s_stream,
++    .g_frame_interval = imx547_g_frame_interval,
++    .s_frame_interval = imx547_s_frame_interval,
+ };
+ 
+ static const struct v4l2_subdev_ops imx547_subdev_ops = {
+     .pad = &imx547_pad_ops,
+     .video = &imx547_video_ops,
+ };
+ 
+ static const struct v4l2_ctrl_ops imx547_ctrl_ops = {
+     .s_ctrl = imx547_s_ctrl,
+ };
+-- 
+2.34.1

@@ -1,0 +1,206 @@
+Subject: [PATCH] drivers: adapt callbacks to the 6.6 kernel API
+
+Upstream builds against newer kernels where platform_driver.remove
+returns void and the IIO write_event_config hook takes a bool state.
+The 6.6 kernel this module is built against still uses the older API:
+platform_driver.remove must return int, and write_event_config takes an
+int state.  Building against 6.6 otherwise fails with
+-Werror=incompatible-pointer-types on every .remove initializer and on
+hub_write_event_config.
+
+Switch the five platform remove callbacks back to returning int and
+change hub_write_event_config's state argument to int.
+
+Upstream-Status: Pending
+---
+ hls-foc-periodic.c | 3 ++-
+ hls-pwm-gen.c      | 3 ++-
+ hls-qei-axi.c      | 3 ++-
+ hls-svpwm-duty.c   | 3 ++-
+ xilinx-adc-hub.c   | 5 +++--
+ 5 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/hls-foc-periodic.c b/hls-foc-periodic.c
+index 7e5e41b..b5b2bcb 100644
+--- a/hls-foc-periodic.c
++++ b/hls-foc-periodic.c
+@@ -1006,26 +1006,27 @@ static int foc_probe(struct platform_device *pdev)
+ 	ret = iio_device_register(indio_dev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	dev_info(&pdev->dev, "Successfully registered device FOC");
+ 	platform_set_drvdata(pdev, indio_dev);
+ 
+ 	return 0;
+ }
+ 
+-static void foc_remove(struct platform_device *pdev)
++static int foc_remove(struct platform_device *pdev)
+ {
+ 	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
+ 
+ 	iio_device_unregister(indio_dev);
+ 	/* clock is disabled automatically by devm_clk_get_enabled() devres */
++	return 0;
+ }
+ 
+ static struct platform_driver foc_drv = {
+ 	.probe = foc_probe,
+ 	.remove = foc_remove,
+ 	.driver = {
+ 		.name = "hls-foc-periodic",
+ 		.of_match_table = of_match_ptr(foc_ids),
+ 	},
+ };
+diff --git a/hls-pwm-gen.c b/hls-pwm-gen.c
+index 48345e5..247ef93 100644
+--- a/hls-pwm-gen.c
++++ b/hls-pwm-gen.c
+@@ -411,25 +411,26 @@ static int pwmgen_probe(struct platform_device *pdev)
+ 	ret = iio_device_register(indio_dev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	dev_info(&pdev->dev, "Successfully registered device PWM-GEN encoder");
+ 	platform_set_drvdata(pdev, indio_dev);
+ 
+ 	return 0;
+ }
+ 
+-static void pwmgen_remove(struct platform_device *pdev)
++static int pwmgen_remove(struct platform_device *pdev)
+ {
+ 	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
+ 
+ 	iio_device_unregister(indio_dev);
++	return 0;
+ }
+ 
+ static struct platform_driver pwmgen_drv = {
+ 	.probe = pwmgen_probe,
+ 	.remove = pwmgen_remove,
+ 	.driver = {
+ 		.name = "hls-pwm-gen",
+ 		.of_match_table = of_match_ptr(pwmgen_ids),
+ 	},
+ };
+diff --git a/hls-qei-axi.c b/hls-qei-axi.c
+index 9c0ddef..9bc7df0 100644
+--- a/hls-qei-axi.c
++++ b/hls-qei-axi.c
+@@ -426,25 +426,26 @@ static int xqei_probe(struct platform_device *pdev)
+ 	ret = iio_device_register(indio_dev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	dev_info(&pdev->dev, "Successfully registered device XQEI encoder");
+ 	platform_set_drvdata(pdev, indio_dev);
+ 
+ 	return 0;
+ }
+ 
+-static void xqei_remove(struct platform_device *pdev)
++static int xqei_remove(struct platform_device *pdev)
+ {
+ 	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
+ 
+ 	iio_device_unregister(indio_dev);
++	return 0;
+ }
+ 
+ static struct platform_driver xqei_drv = {
+ 	.probe = xqei_probe,
+ 	.remove = xqei_remove,
+ 	.driver = {
+ 		.name = "hls-qei-axi",
+ 		.of_match_table = of_match_ptr(xqei_ids),
+ 	},
+ };
+diff --git a/hls-svpwm-duty.c b/hls-svpwm-duty.c
+index 678f6a8..4a79c6f 100644
+--- a/hls-svpwm-duty.c
++++ b/hls-svpwm-duty.c
+@@ -390,25 +390,26 @@ static int svpwm_probe(struct platform_device *pdev)
+ 	ret = iio_device_register(indio_dev);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	dev_info(&pdev->dev, "Successfully registered device SVPWM DUTY ");
+ 	platform_set_drvdata(pdev, indio_dev);
+ 
+ 	return 0;
+ }
+ 
+-static void svpwm_remove(struct platform_device *pdev)
++static int svpwm_remove(struct platform_device *pdev)
+ {
+ 	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
+ 
+ 	iio_device_unregister(indio_dev);
++	return 0;
+ }
+ 
+ static struct platform_driver svpwm_drv = {
+ 	.probe = svpwm_probe,
+ 	.remove = svpwm_remove,
+ 	.driver = {
+ 		.name = "hls-svpwm-duty",
+ 		.of_match_table = of_match_ptr(svpwm_ids),
+ 	},
+ };
+diff --git a/xilinx-adc-hub.c b/xilinx-adc-hub.c
+index eb049f2..260271c 100644
+--- a/xilinx-adc-hub.c
++++ b/xilinx-adc-hub.c
+@@ -372,21 +372,21 @@ static int hub_read_event_config(struct iio_dev *indio_dev,
+  * @dir: direction of the vent whose state is being set
+  * @state: whether to enable or disable the device.
+  *
+  * This function would normally set the relevant registers on the devices
+  * so that it generates the specified event. Here it just sets up a cached
+  * value.
+  */
+ static int hub_write_event_config(struct iio_dev *indio_dev,
+ 				  const struct iio_chan_spec *channels,
+ 				  enum iio_event_type type,
+-				  enum iio_event_direction dir, bool state)
++				  enum iio_event_direction dir, int state)
+ {
+ 	struct hubdata *st = iio_priv(indio_dev);
+ 
+ 	switch (channels->type) {
+ 	case IIO_VOLTAGE:
+ 		switch (type) {
+ 		case IIO_EV_TYPE_THRESH:
+ 			if (dir == IIO_EV_DIR_RISING) {
+ 				write_reg(st, channels->address + OVERLIMIT_EN,
+ 					  state);
+@@ -964,25 +964,26 @@ static int adc_hub_probe(struct platform_device *pdev)
+ 
+ 	dev_info(&pdev->dev, "Successfully registered ADC-HUB channels");
+ 	platform_set_drvdata(pdev, indio_dev);
+ 
+ 	for (chan = 0; chan < indio_dev->num_channels - 1; chan++)
+ 		write_reg(st, INTERRUPT + chan * 0x100, ENABLE_IRQ);
+ 
+ 	return 0;
+ }
+ 
+-static void adc_hub_remove(struct platform_device *pdev)
++static int adc_hub_remove(struct platform_device *pdev)
+ {
+ 	struct iio_dev *indio_dev = platform_get_drvdata(pdev);
+ 
+ 	iio_device_unregister(indio_dev);
++	return 0;
+ }
+ 
+ static struct platform_driver adc_hub = {
+ 	.probe = adc_hub_probe,
+ 	.remove = adc_hub_remove,
+ 	.driver = {
+ 		.name = "adc_hub",
+ 		.of_match_table = of_match_ptr(hub_ids),
+ 	},
+ };
