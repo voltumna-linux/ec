@@ -21,11 +21,11 @@
 [submodule "meta-kria"]
 	path = meta-kria
 	url = https://github.com/Xilinx/meta-kria.git
-	branch = rel-v2026.1
+	branch = rel-v2026.2-scarthgap
 [submodule "meta-xilinx"]
 	path = meta-xilinx
 	url = https://github.com/Xilinx/meta-xilinx.git
-	branch = rel-v2026.1
+	branch = rel-v2026.2-scarthgap
 [submodule "meta-kria-apps"]
 	path = meta-kria-apps
 	url = https://github.com/Xilinx/meta-kria-apps.git
@@ -33,7 +33,7 @@
 [submodule "meta-xilinx-tsn"]
 	path = meta-xilinx-tsn
 	url = https://github.com/Xilinx/meta-xilinx-tsn.git
-	branch = rel-v2026.1
+	branch = rel-v2026.2-scarthgap
 [submodule "meta-security"]
 	path = meta-security
 	url = https://git.yoctoproject.org/meta-security
