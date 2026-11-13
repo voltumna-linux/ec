@@ -25,7 +25,7 @@
 [submodule "meta-xilinx"]
 	path = meta-xilinx
 	url = https://github.com/Xilinx/meta-xilinx.git
-	branch = rel-v2026.2
+	branch = wrynose
 [submodule "meta-kria-apps"]
 	path = meta-kria-apps
 	url = https://github.com/Xilinx/meta-kria-apps.git
