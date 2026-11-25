@@ -1,4 +1,4 @@
 # krnfile=zImage
 # fdtfile=mvme2500.dtb
-image=${ipaddr}/@IMAGE_NAME@
+image=usr
 optargs=quiet
